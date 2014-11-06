@@ -1,7 +1,7 @@
 Accessing Data Stored in MongoDB  with Apache Flink 0.7+!
 ===================
 
-Starting from the post at https://flink.incubator.apache.org/news/2014/01/28/querying_mongodb.html here at [Okkam](www.okkam.it) we played around withthe new **Apache Flink APIs (0.7+)** and we manage to make a simple mapreduce example.
+Starting from the post at https://flink.incubator.apache.org/news/2014/01/28/querying_mongodb.html here at [Okkam](http://www.okkam.it) we played around withthe new **Apache Flink APIs (0.7+)** and we manage to make a simple mapreduce example.
 
 ----------
 
