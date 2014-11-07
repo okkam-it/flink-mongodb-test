@@ -78,7 +78,8 @@ pom.xml
 > **Note:**
 
 > - Change ``dbname`` and ``collectioname`` accordingly to your database
-> - In the map function read fields you need (e.g. ``jsonld`` and ``someotherfield``)
+> - In the map function read fields you need (e.g. ``jsonld``)
+> - Change the output coordinates of the job (default ``test.testData``)
 
 
 ----------
@@ -119,23 +120,34 @@ public class MongodbExample {
 
 		DataSet<Tuple2<BSONWritable, BSONWritable>> input = env.createInput(hdIf);
 		// a little example how to use the data in a mapper.
-		DataSet<String> fin = input.map(new MapFunction<Tuple2<BSONWritable, BSONWritable>, String>() {
+		DataSet<Tuple2< Text, BSONWritable>> fin = input.map(
+				new MapFunction<Tuple2<BSONWritable, BSONWritable>, Tuple2<Text,BSONWritable> >() {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public String map(Tuple2<BSONWritable, BSONWritable> record) throws Exception {
+					public Tuple2<Text,BSONWritable> map(Tuple2<BSONWritable, BSONWritable> record) throws Exception {
 						BSONWritable value = record.getField(1);
 						BSONObject doc = value.getDoc();
 						BasicDBObject jsonld = (BasicDBObject) doc.get("jsonld");
-						String someotherfield = (String) doc.get("someotherfield");
-						String type = jsonld.getString("@type");
-						return type;
+						
+						String id = jsonld.getString("@id");
+						DBObject builder = BasicDBObjectBuilder.start()
+				                .add("id", id)
+				                .add("type", jsonld.getString("@type"))
+				                .get();
+
+				        BSONWritable w = new BSONWritable(builder);
+		                return new Tuple2<Text,BSONWritable>(new Text(id), w);
 					}
 				});
 
 		// emit result (this works only locally)
-		fin.print();
+        // fin.print();
+		
+		MongoConfigUtil.setOutputURI( hdIf.getJobConf(), "mongodb://localhost:27017/test.testData");
+		// emit result (this works only locally)
+		fin.output(new HadoopOutputFormat<Text,BSONWritable>(new MongoOutputFormat<Text,BSONWritable>(), hdIf.getJobConf()));
 
 		// execute program
 		env.execute("Mongodb Example");
