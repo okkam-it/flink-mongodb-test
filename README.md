@@ -112,21 +112,25 @@ public class MongodbExample {
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
 		// create a MongodbInputFormat, using a Hadoop input format wrapper
-		HadoopInputFormat<BSONWritable, BSONWritable> hdIf = new HadoopInputFormat<BSONWritable, BSONWritable>(
-				new MongoInputFormat(), BSONWritable.class, BSONWritable.class,	new JobConf());
+		HadoopInputFormat<BSONWritable, BSONWritable> hdIf = 
+				new HadoopInputFormat<BSONWritable, BSONWritable>(new MongoInputFormat(),
+						BSONWritable.class, BSONWritable.class,	new JobConf());
 	
 		// specify connection parameters
-		hdIf.getJobConf().set("mongo.input.uri", "mongodb://localhost:27017/dbname.collectioname");
+		hdIf.getJobConf().set("mongo.input.uri", 
+				"mongodb://localhost:27017/dbname.collectioname");
 
 		DataSet<Tuple2<BSONWritable, BSONWritable>> input = env.createInput(hdIf);
 		// a little example how to use the data in a mapper.
 		DataSet<Tuple2< Text, BSONWritable>> fin = input.map(
-				new MapFunction<Tuple2<BSONWritable, BSONWritable>, Tuple2<Text,BSONWritable> >() {
+				new MapFunction<Tuple2<BSONWritable, BSONWritable>, 
+									Tuple2<Text,BSONWritable> >() {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public Tuple2<Text,BSONWritable> map(Tuple2<BSONWritable, BSONWritable> record) throws Exception {
+					public Tuple2<Text,BSONWritable> map(
+							Tuple2<BSONWritable, BSONWritable> record) throws Exception {
 						BSONWritable value = record.getField(1);
 						BSONObject doc = value.getDoc();
 						BasicDBObject jsonld = (BasicDBObject) doc.get("jsonld");
@@ -143,11 +147,13 @@ public class MongodbExample {
 				});
 
 		// emit result (this works only locally)
-        // fin.print();
+//		fin.print();
 		
-		MongoConfigUtil.setOutputURI( hdIf.getJobConf(), "mongodb://localhost:27017/test.testData");
+		MongoConfigUtil.setOutputURI( hdIf.getJobConf(), 
+				"mongodb://localhost:27017/test.testData");
 		// emit result (this works only locally)
-		fin.output(new HadoopOutputFormat<Text,BSONWritable>(new MongoOutputFormat<Text,BSONWritable>(), hdIf.getJobConf()));
+		fin.output(new HadoopOutputFormat<Text,BSONWritable>(
+				new MongoOutputFormat<Text,BSONWritable>(), hdIf.getJobConf()));
 
 		// execute program
 		env.execute("Mongodb Example");
